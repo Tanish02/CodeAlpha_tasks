@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { express } from "express";
+import express from "express";
 import Url from "../models/Url.js";
 
 const router = express.Router();
@@ -31,3 +31,5 @@ router.post("/shorten", async (req, res) => {
 });
 
 export default router;
+
+// end code
