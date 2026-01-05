@@ -1,8 +1,12 @@
 import dotenv from "dotenv";
+dotenv.config({ path: "./.env" });
+
 import app from "./app.js";
 import connectDB from "./config/db.js";
 
-dotenv.config();
+//console.log("MONGO_URL =", process.env.MONGO_URI);
+//console.log(process.env.MONGO_URL);
+
 const PORT = process.env.PORT || 5050;
 
 // DB LOGIC
