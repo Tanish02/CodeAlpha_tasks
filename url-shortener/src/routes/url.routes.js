@@ -4,6 +4,7 @@ import Url from "../models/Url.js";
 
 const router = express.Router();
 
+// short url LOGIC
 router.post("/shorten", async (req, res) => {
   try {
     const { longUrl } = req.body;
@@ -29,6 +30,22 @@ router.post("/shorten", async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
+// short url redirect logic
+// router.get("/:shortCode", async (req, res) => {
+//   try {
+//     const { shortCode } = req.params;
+//     const url = await Url.findOne({ shortCode });
+
+//     if (!url) {
+//       return res.status(404).json({ message: "URL not found" });
+//     }
+//     return res.redirect(url.originalUrl);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// });
 
 export default router;
 
