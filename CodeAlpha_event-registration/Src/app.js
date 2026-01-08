@@ -1,5 +1,6 @@
 import express from "express";
 import eventRoutes from "./routes/event.routes.js";
+import registrationRoutes from "./routes/registration.routes.js";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.get("/", (req, res) => {
 
 // routes
 app.use("/api/events", eventRoutes);
+app.use("/api/registrations", registrationRoutes);
 
 export default app;
 
