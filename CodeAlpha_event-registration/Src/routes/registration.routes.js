@@ -1,4 +1,8 @@
-import { express } from "express";
+import express from "express";
+import mongoose from "mongoose";
+import Event from "../models/Event.js";
+import Registration from "../models/Registration.js";
+import User from "../models/User.js";
 
 const router = express.Router();
 
@@ -10,6 +14,11 @@ router.post("/", async (req, res) => {
     if (!name || !email || !eventId) {
       return res.status(400).json({
         message: "name, email and eventId are required",
+      });
+    }
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({
+        message: "Invalid eventId format",
       });
     }
 
@@ -40,7 +49,8 @@ router.post("/", async (req, res) => {
     // create registration
     const registration = await Registration.create({
       user: user._id,
-      event: event._idId,
+      event: event._id,
+      status: "registered",
     });
     res.status(201).json({
       message: "Registration successful",
@@ -87,6 +97,14 @@ router.get("/history/:email", async (req, res) => {
 // Cancel registration
 router.delete("/:id", async (req, res) => {
   try {
+    //. Validate registration id
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        message: "Invalid registration ID",
+      });
+    }
+
+    // Find registration
     const registration = await Registration.findById(req.params.id);
 
     if (!registration) {
@@ -95,11 +113,12 @@ router.delete("/:id", async (req, res) => {
       });
     }
 
+    // Cancel registration
     registration.status = "cancelled";
     await registration.save();
 
     res.json({
-      message: "Registration cancelled",
+      message: "Registration cancelled successfully",
     });
   } catch (error) {
     res.status(500).json({
@@ -110,5 +129,4 @@ router.delete("/:id", async (req, res) => {
 });
 
 export default router;
-
 // end code
