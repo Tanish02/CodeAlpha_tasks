@@ -49,7 +49,6 @@ This project is intended for learning, practice, and demonstration purposes, sho
   `GET /:shortCode`
 
   The server:
-
   - Extracts the short code from the URL
   - Looks it up in MongoDB
   - Redirects to the original URL
@@ -145,7 +144,7 @@ Automatically redirects to the original URL.
    - Required variables:
      ```env
      PORT=5050
-     MONGO_URI=mongodb://127.0.0.1:27017/urlshortener
+     MONGO_URL=mongodb://127.0.0.1:27017/urlshortener
      ```
 3. Start the application:
    ```sh
