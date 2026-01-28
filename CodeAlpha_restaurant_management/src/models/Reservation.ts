@@ -1,6 +1,22 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Types } from "mongoose";
 import { ReservationSchema } from "../schemas/reservation.schema";
 
-export const Reservations = mongoose.model("Reservations", ReservationSchema);
+/**
+ * Reservation document interface
+ */
+export interface IReservation extends Document {
+  customerName: string;
+  customerPhone: string;
+  table: Types.ObjectId;
+  dateTime: Date;
+  status: "active" | "cancelled";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export const Reservation = mongoose.model<IReservation>(
+  "Reservation",
+  ReservationSchema,
+);
 
 // end code
