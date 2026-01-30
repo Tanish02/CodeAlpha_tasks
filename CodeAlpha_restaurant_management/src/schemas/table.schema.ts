@@ -1,8 +1,8 @@
 import { Schema } from "mongoose";
 
-const TableSchema = new Schema(
+export const TableSchema = new Schema(
   {
-    tableNumer: {
+    tableNumber: {
       type: Number,
       required: true,
       unique: true,
@@ -19,7 +19,5 @@ const TableSchema = new Schema(
   },
   { timestamps: true },
 );
-
-export { TableSchema };
 
 // end code

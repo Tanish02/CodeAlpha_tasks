@@ -3,89 +3,75 @@ import mongoose from "mongoose";
 import { MenuItem } from "../models/MenuItem";
 import { Order } from "../models/Order";
 
-// place orders
+// Place Order
 export const placeOrder = async (req: Request, res: Response) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    const { items } = req.body;
-    /**
-     * items = [
-     *   { menuItemId: string, quantity: number }
-     * ]
-     */
+    const { items, tableId } = req.body;
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ message: "Order items required" });
+    if (!mongoose.Types.ObjectId.isValid(tableId)) {
+      return res.status(400).json({ message: "Invalid tableId" });
     }
 
     let totalAmount = 0;
+    const orderItems: any[] = [];
 
-    // Validate items & stock
     for (const item of items) {
-      const menuItem = await MenuItem.findById(item.menuItemId).session(
-        session,
-      );
+      const { menuItemId, quantity } = item;
+
+      if (
+        !mongoose.Types.ObjectId.isValid(menuItemId) ||
+        !quantity ||
+        quantity <= 0
+      ) {
+        return res.status(400).json({ message: "Invalid order item data" });
+      }
+
+      const menuItem = await MenuItem.findById(menuItemId);
 
       if (!menuItem || !menuItem.isAvailable) {
-        throw new Error("Menu item not available");
+        return res.status(404).json({
+          message: `Menu item not available`,
+        });
       }
 
-      if (menuItem.stockQuantity < item.quantity) {
-        throw new Error(`Insufficient stock for ${menuItem.name}`);
+      if (menuItem.stockQuantity < quantity) {
+        return res.status(400).json({
+          message: `Insufficient stock for ${menuItem.name}`,
+        });
       }
 
-      totalAmount += menuItem.price * item.quantity;
+      // Reduce stock inventry
+      menuItem.stockQuantity -= quantity;
+
+      if (menuItem.stockQuantity === 0) {
+        menuItem.isAvailable = false;
+      }
+
+      await menuItem.save();
+
+      totalAmount += menuItem.price * quantity;
+
+      orderItems.push({
+        menuItem: menuItem._id,
+        quantity,
+        price: menuItem.price,
+      });
     }
 
-    // Deduct inventory
-    for (const item of items) {
-      await MenuItem.findByIdAndUpdate(
-        item.menuItemId,
-        { $inc: { stockQuantity: -item.quantity } },
-        { session },
-      );
-    }
-
-    // Create order
-    const order = await Order.create(
-      [
-        {
-          items,
-          totalAmount,
-          status: "PLACED",
-        },
-      ],
-      { session },
-    );
-
-    await session.commitTransaction();
+    const order = await Order.create({
+      table: tableId,
+      items: orderItems,
+      totalAmount,
+      status: "pending",
+    });
 
     res.status(201).json({
       message: "Order placed successfully",
-      order: order[0],
+      order,
     });
-  } catch (error: any) {
-    await session.abortTransaction();
-
-    res.status(400).json({
-      message: "Order failed",
-      error: error.message,
-    });
-  } finally {
-    session.endSession();
-  }
-};
-
-// view all oreders admin
-export const getOrders = async (_req: Request, res: Response) => {
-  try {
-    const orders = await Order.find().populate("items.menuItemId");
-    res.json(orders);
   } catch (error: any) {
     res.status(500).json({
-      message: "Failed to fetch orders",
+      message: "Order failed",
       error: error.message,
     });
   }
