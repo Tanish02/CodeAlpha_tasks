@@ -33,4 +33,4 @@ const MenuItemSchema = new Schema(
 export { MenuItemSchema };
 
 // end code
-// menu item schema contain timestamp for better details
+// schema contain timestamps for better details
