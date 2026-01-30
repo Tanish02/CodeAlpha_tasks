@@ -3,12 +3,11 @@ import menuRoutes from "./routes/menu.routes";
 
 const app = express();
 
-// middleware
 app.use(express.json());
 
-// health check
+// testing api
 app.get("/", (_req, res) => {
-  res.send("Restaurant Management API running...");
+  res.send("Restaurant Management API Working....");
 });
 
 // routes
