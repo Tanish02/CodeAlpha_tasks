@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { Order } from "../models/Order";
 import { MenuItem } from "../models/MenuItem";
+import { Order } from "../models/Order";
 
 // place orders
 export const placeOrder = async (req: Request, res: Response) => {
@@ -39,6 +39,56 @@ export const placeOrder = async (req: Request, res: Response) => {
       totalAmount += menuItem.price * item.quantity;
     }
 
+    // Deduct inventory
+    for (const item of items) {
+      await MenuItem.findByIdAndUpdate(
+        item.menuItemId,
+        { $inc: { stockQuantity: -item.quantity } },
+        { session },
+      );
+    }
 
+    // Create order
+    const order = await Order.create(
+      [
+        {
+          items,
+          totalAmount,
+          status: "PLACED",
+        },
+      ],
+      { session },
+    );
 
-    // end code
+    await session.commitTransaction();
+
+    res.status(201).json({
+      message: "Order placed successfully",
+      order: order[0],
+    });
+  } catch (error: any) {
+    await session.abortTransaction();
+
+    res.status(400).json({
+      message: "Order failed",
+      error: error.message,
+    });
+  } finally {
+    session.endSession();
+  }
+};
+
+// view all oreders admin
+export const getOrders = async (_req: Request, res: Response) => {
+  try {
+    const orders = await Order.find().populate("items.menuItemId");
+    res.json(orders);
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Failed to fetch orders",
+      error: error.message,
+    });
+  }
+};
+
+// end code
